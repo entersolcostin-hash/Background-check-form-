@@ -267,6 +267,21 @@
             border-color: #718096;
         }
 
+        #form-status {
+            text-align: center;
+            margin-top: 15px;
+            font-weight: 600;
+            font-size: 1em;
+        }
+
+        #form-status.success {
+            color: #38a169;
+        }
+
+        #form-status.error {
+            color: #e53e3e;
+        }
+
         @media (max-width: 600px) {
             .form-row {
                 grid-template-columns: 1fr;
@@ -298,7 +313,7 @@
             Please complete all sections accurately. This information is required for DBS and right-to-work checks.
         </div>
 
-        <form id="backgroundForm" action="https://forminit.com/f/pv9m0ialnwj" method="POST" enctype="multipart/form-data">
+        <form id="backgroundForm">
 
             <!-- Personal Details -->
             <div class="section">
@@ -307,29 +322,29 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label>First Name <span class="required">*</span></label>
-                        <input type="text" name="firstName" required>
+                        <input type="text" name="fi-sender-firstName" required>
                     </div>
                     <div class="form-group">
                         <label>Middle Name(s)</label>
-                        <input type="text" name="middleName" placeholder="If applicable">
+                        <input type="text" name="fi-text-middleName" placeholder="If applicable">
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group">
                         <label>Surname <span class="required">*</span></label>
-                        <input type="text" name="surname" required>
+                        <input type="text" name="fi-sender-lastName" required>
                     </div>
                     <div class="form-group">
                         <label>Date of Birth <span class="required">*</span></label>
-                        <input type="date" name="dob" required>
+                        <input type="date" name="fi-text-dob" required>
                     </div>
                 </div>
 
                 <div class="form-row">
                     <div class="form-group full-width">
                         <label>National Insurance Number <span class="required">*</span></label>
-                        <input type="text" name="niNumber" placeholder="AB 12 34 56 C" required>
+                        <input type="text" name="fi-text-niNumber" placeholder="AB 12 34 56 C" required>
                     </div>
                 </div>
             </div>
@@ -341,29 +356,29 @@
                 <div class="address-block" id="currentAddress">
                     <div class="address-header">
                         <span class="address-label">Current Address</span>
-                        <span class="date-range">From: <input type="date" name="currentAddressFrom" required></span>
+                        <span class="date-range">From: <input type="date" name="fi-text-currentAddressFrom" required></span>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group full-width">
                             <label>Address Line 1 <span class="required">*</span></label>
-                            <input type="text" name="currentAddress1" required>
+                            <input type="text" name="fi-text-currentAddress1" required>
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group full-width">
                             <label>Address Line 2</label>
-                            <input type="text" name="currentAddress2">
+                            <input type="text" name="fi-text-currentAddress2">
                         </div>
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label>Town/City <span class="required">*</span></label>
-                            <input type="text" name="currentTown" required>
+                            <input type="text" name="fi-text-currentTown" required>
                         </div>
                         <div class="form-group">
                             <label>Postcode <span class="required">*</span></label>
-                            <input type="text" name="currentPostcode" required>
+                            <input type="text" name="fi-text-currentPostcode" required>
                         </div>
                     </div>
                 </div>
@@ -384,7 +399,7 @@
 
                 <div class="licence-uploads">
                     <div class="file-upload-box" onclick="document.getElementById('licenceFront').click()">
-                        <input type="file" id="licenceFront" name="licenceFront" accept="image/*,.pdf" required onchange="showFileName(this, 'frontFileName')">
+                        <input type="file" id="licenceFront" name="fi-file-licenceFront" accept="image/*,.pdf" required onchange="showFileName(this, 'frontFileName')">
                         <div class="upload-icon">📷</div>
                         <span class="upload-label">Front of Licence <span class="required">*</span></span>
                         <span class="upload-hint">Photo or PDF</span>
@@ -392,7 +407,7 @@
                     </div>
 
                     <div class="file-upload-box" onclick="document.getElementById('licenceBack').click()">
-                        <input type="file" id="licenceBack" name="licenceBack" accept="image/*,.pdf" required onchange="showFileName(this, 'backFileName')">
+                        <input type="file" id="licenceBack" name="fi-file-licenceBack" accept="image/*,.pdf" required onchange="showFileName(this, 'backFileName')">
                         <div class="upload-icon">📷</div>
                         <span class="upload-label">Back of Licence <span class="required">*</span></span>
                         <span class="upload-hint">Photo or PDF</span>
@@ -404,20 +419,54 @@
             <!-- Declaration -->
             <div class="section">
                 <div class="checkbox-group">
-                    <input type="checkbox" id="declaration" name="declaration" required>
+                    <input type="checkbox" id="declaration" name="fi-text-declaration" required>
                     <label for="declaration">
                         I confirm that all information provided is accurate and complete. I understand that providing false information may result in my application being rejected and could have legal consequences. I consent to background checks including DBS and right-to-work verification.
                     </label>
                 </div>
             </div>
 
-            <button type="submit" class="submit-btn">Submit Background Information</button>
+            <button type="submit" class="submit-btn" id="submitBtn">Submit Background Information</button>
+            <p id="form-status"></p>
 
         </form>
     </div>
 </div>
 
+<script src="https://forminit.com/sdk/v1/forminit.js"></script>
 <script>
+    const forminit = new Forminit();
+    const FORM_ID = 'pv9m0ialnwj';
+    const form = document.getElementById('backgroundForm');
+    const status = document.getElementById('form-status');
+    const button = document.getElementById('submitBtn');
+
+    form.addEventListener('submit', async function(event) {
+        event.preventDefault();
+        status.textContent = 'Sending...';
+        status.className = '';
+        button.disabled = true;
+        button.textContent = 'Sending...';
+
+        const formData = new FormData(form);
+        const { data, error } = await forminit.submit(FORM_ID, formData);
+
+        button.disabled = false;
+        button.textContent = 'Submit Background Information';
+
+        if (error) {
+            status.textContent = 'Error: ' + error.message;
+            status.className = 'error';
+            return;
+        }
+
+        status.textContent = 'Form submitted successfully! Thank you.';
+        status.className = 'success';
+        form.reset();
+        document.getElementById('frontFileName').textContent = '';
+        document.getElementById('backFileName').textContent = '';
+    });
+
     let addressCount = 0;
 
     function addPreviousAddress() {
@@ -434,33 +483,33 @@
             <div class="form-row">
                 <div class="form-group">
                     <label>From Date <span class="required">*</span></label>
-                    <input type="date" name="prevAddressFrom${addressCount}" required>
+                    <input type="date" name="fi-text-prevAddressFrom${addressCount}" required>
                 </div>
                 <div class="form-group">
                     <label>To Date <span class="required">*</span></label>
-                    <input type="date" name="prevAddressTo${addressCount}" required>
+                    <input type="date" name="fi-text-prevAddressTo${addressCount}" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Address Line 1 <span class="required">*</span></label>
-                    <input type="text" name="prevAddress1_${addressCount}" required>
+                    <input type="text" name="fi-text-prevAddress1_${addressCount}" required>
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group full-width">
                     <label>Address Line 2</label>
-                    <input type="text" name="prevAddress2_${addressCount}">
+                    <input type="text" name="fi-text-prevAddress2_${addressCount}">
                 </div>
             </div>
             <div class="form-row">
                 <div class="form-group">
                     <label>Town/City <span class="required">*</span></label>
-                    <input type="text" name="prevTown${addressCount}" required>
+                    <input type="text" name="fi-text-prevTown${addressCount}" required>
                 </div>
                 <div class="form-group">
                     <label>Postcode <span class="required">*</span></label>
-                    <input type="text" name="prevPostcode${addressCount}" required>
+                    <input type="text" name="fi-text-prevPostcode${addressCount}" required>
                 </div>
             </div>
         `;
